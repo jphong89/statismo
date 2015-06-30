@@ -3,13 +3,13 @@
 
 #include <memory>
 #include <vector>
+
 #include "CommonTypes.h"
 #include "Config.h"
 #include "DataManager.h"
 #include "ModelBuilder.h"
 #include "ModelInfo.h"
 #include "StatisticalModel.h"
-#include <unsupported/Eigen/NonLinearOptimization>
 
 namespace statismo {
 
@@ -99,10 +99,6 @@ namespace statismo {
 
 #include "PNSModelBuilder.hxx"
     StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
-    // PNS stuff
-    // Do I want to return pointer instead of a value??
-    MatrixXd computeRotMat( VectorXd vec ) const;
-    MatrixXd computeRiemannianExpMap( MatrixXd mat ) const;
 
 
 };
