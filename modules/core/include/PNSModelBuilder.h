@@ -3,8 +3,6 @@
 
 #include <memory>
 #include <vector>
-// Maybe considering just defining PI? instead of including entire lib?
-#include <cmath>
 
 #include "CommonTypes.h"
 #include "Config.h"
@@ -12,9 +10,6 @@
 #include "ModelBuilder.h"
 #include "ModelInfo.h"
 #include "StatisticalModel.h"
-// To use nonlinear least square solver
-// TODO: Check the name as well as its API
-#include <Eigen/unsupported>
 
 namespace statismo {
 
@@ -85,7 +80,10 @@ namespace statismo {
                 double computeGeodesicMeanS1( const VectorXd& angles ) const;
                 double modBy2PI( const double& x ) const;
 
-        };
+    StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
+
+
+};
 
 } // namespace statismo
 
