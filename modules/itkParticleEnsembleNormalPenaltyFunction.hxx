@@ -481,28 +481,6 @@ namespace itk
                 Z_scores.put(1,i,acos(Z2_scores[i])-M_PI/2); 
             }
 
-            //Normalize principal scores using their std
-            /* double mean_Z1 = Z_scores.get_row(0).mean();
-               double mean_Z2 = Z_scores.get_row(1).mean();
-
-               double std_Z1=0;
-               double std_Z2=0;
-               for (unsigned int i = 0 ; i < angles.size() ; i++)
-               {
-               std_Z1 += (Z_scores.get(0,i)-mean_Z1)*(Z_scores.get(0,i)-mean_Z1);
-               std_Z2 += (Z_scores.get(1,i)-mean_Z2)*(Z_scores.get(1,i)-mean_Z2);
-               }
-               double aux = std_Z1 / angles.size(); std_Z1 = sqrt (aux);
-               aux = std_Z2 / angles.size(); std_Z2 = sqrt (aux);
-
-               for (unsigned int i = 0 ; i < angles.size() ; i++)
-               {
-               double value = Z_scores.get(0,i) / std_Z1;
-               Z_scores.put(0,i,value);
-               value = Z_scores.get(1,i) / std_Z2;
-               Z_scores.put(1,i,value); 
-               }*/
-
             return (Z_scores);
         }
 
