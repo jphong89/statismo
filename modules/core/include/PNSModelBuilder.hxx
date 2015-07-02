@@ -274,7 +274,7 @@ namespace statismo {
         }
     template <typename T>
         typename PNSModelBuilder<T>::MatrixXd
-        PNSModelBuilder<T>::computeRiemannianLogMap( const MatrixXd& mat ) const {
+        PNSModelBuilder<T>::computeRiemannianLogMap( const VectorXd& angles ) const {
 
             MatrixXd result(mat.rows()-1, mat.cols());
 
@@ -291,11 +291,48 @@ namespace statismo {
             result  = auxM1.array() * auxM2.array();
 
         }
+    template <typename T>
+        typename PNSModelBuilder<T>::double
+        PNSModelBuilder<T>::modBy2PI( const double& x ) const {
+            // helper function to be used.
+            // Maybe consider inlining?
+            return ( x - (2*M_PI)*floor( x / (2*M_PI) ) );
+        }
 
     template <typename T>
-        typename PNSModelBuilder<T>::VectorXd
-        PNSModelBuilder<T>::computeGeodesicMeanS1( const MatrixXd& mat ) const {
+        typename PNSModelBuilder<T>::double
+        PNSModelBuilder<T>::computeGeodesicMeanS1( const VectorXd& angles ) const {
+            VectorXd meanCandidate( angles.size() );
+            VectorXd auxV1( angles.size() );
+            VectorXd theta( angles.size() );
+            MatrixXd distMatrix( angles.size(), 3 );
+            VectorXd geodVariance( angles.size() );
+            double currCandidate(0);
+            double currGeodVariance(0);
+            int idxToGeodMean(0);
+            double geodMean(0);
 
+
+            // same as theta = mod( angles, 2*pi ) in MATLAB
+            theta = angles.unaryExpr( std::ptr_fun(modBy2PI) );
+            
+            // Generating mean candidates
+            auxV1.setLinSpaced(angles.size(), 0, angles.size()-1);
+            auxV1 = (auxV1.array() / auxV1.size()).matrix();
+
+            meanCandidate = (angles.mean() + 2*M_PI*auxV1.array()).matrix();
+            meanCandidate.unaryExpr( std::ptr_fun(modBy2PI));
+
+            for(int i=0; i<angles.size(); ++i) {
+                double currCandidate = meanCandidate(i);
+                distMatrix.col(0) = ((theta.array() - currCandidate).square()).matrix();
+                distMatrix.col(1) = ((theta.array() - currCandidate + 2*M_PI).square()).matrix();
+                distMatrix.col(2) = ((currCandidate - theta.array() + 2*M_PI).square()).matrix();
+                currGeodVariance = (distMatrix.rowwise().minCoeff()).sum();
+                geodVariance(i) = currGeodVariance;
+            }
+            double minGeodVarianceValue = geodVariance.minCoeff(&idxToGeodMean);
+            geodMean = modBy2PI( meanCandidate( idxToGeodMean ) );
         }
 
 } // namespace statismo
