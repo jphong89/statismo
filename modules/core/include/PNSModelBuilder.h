@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <vector>
+// Maybe considering just defining PI? instead of including entire lib?
+#include <cmath>
 
 #include "CommonTypes.h"
 #include "Config.h"
@@ -80,12 +82,8 @@ namespace statismo {
                 MatrixXd computeRotMat( const VectorXd& vec ) const;
                 MatrixXd computeRiemannianExpMap( const MatrixXd& mat ) const;
                 MatrixXd computeRiemannianLogMap( const MatrixXd& mat ) const;
-                VecotrXd computeGeodesicMeanS1( const MatrixXd& mat ) const;
-
-                // PNS data structures
-                // radius
-                // nested spheres
-
+                double computeGeodesicMeanS1( const VectorXd& angles ) const;
+                double modBy2PI( const double& x ) const;
 
         };
 
