@@ -2,11 +2,11 @@
 #define __GENERICFUNCTOR_H__
 #include <iostream>
 #include <unsupported/Eigen/NonLinearOptimization>
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
+//using namespace Eigen;
 
 template <typename _Scalar, int NX=Eigen::Dynamic, int NY=Eigen::Dynamic>
 class GenericFunctor {
+    //protected:
     public:
         typedef _Scalar Scalar;
         enum{
@@ -17,10 +17,14 @@ class GenericFunctor {
         typedef Eigen::Matrix<Scalar,InputsAtCompileTime,1> InputType;
         typedef Eigen::Matrix<Scalar,InputsAtCompileTime, ValuesAtCompileTime> ValueType;
         //        typedef Eigen::Matrix<Scalar,ValuesAtCompileTime,InputsAtCompileTime> JacobianType;
+        typedef Eigen::MatrixXd MatrixXd;
+        typedef Eigen::VectorXd VectorXd;
+
         int m_inputs, m_values;
 
         //VectorXd m_y;
         ValueType m_y;
+        //public:
         GenericFunctor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
         GenericFunctor(int inputs, int values, const ValueType& y) : m_inputs(inputs), m_values(values), m_y(y) {}
 
