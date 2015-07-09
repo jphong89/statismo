@@ -15,6 +15,7 @@
 // To use nonlinear least square solver
 // TODO: Check the name as well as its API
 #include <Eigen/unsupported>
+#include <unsupported/Eigen/NonLinearOptimization>
 
 namespace statismo {
 
@@ -77,6 +78,7 @@ namespace statismo {
                 PNSModelBuilder& operator=(const PNSModelBuilder& rhs);
                 StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
 
+
                 // PNS stuff
                 // Do I want to return pointer instead of a value??
                 MatrixXd computeRotMat( const VectorXd& vec ) const;
@@ -84,6 +86,10 @@ namespace statismo {
                 MatrixXd computeRiemannianLogMap( const MatrixXd& mat ) const;
                 double computeGeodesicMeanS1( const VectorXd& angles ) const;
                 double modBy2PI( const double& x ) const;
+                // for the time being just repeat the computation
+                MatrixXd getSubsphereAxis( const MatrixXd& data, const int itype) const;
+                MatrixXd getSubsphereRadii( const MatrixXd& data, const int itype) const;
+
 
         };
 
