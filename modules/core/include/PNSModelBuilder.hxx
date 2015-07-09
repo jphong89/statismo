@@ -315,7 +315,7 @@ namespace statismo {
 
             // same as theta = mod( angles, 2*pi ) in MATLAB
             theta = angles.unaryExpr( std::ptr_fun(modBy2PI) );
-            
+
             // Generating mean candidates
             auxV1.setLinSpaced(angles.size(), 0, angles.size()-1);
             auxV1 = (auxV1.array() / auxV1.size()).matrix();
