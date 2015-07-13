@@ -2,7 +2,6 @@
 #define __GENERICFUNCTOR_H__
 #include <iostream>
 #include <unsupported/Eigen/NonLinearOptimization>
-//using namespace Eigen;
 
 template <typename _Scalar, int NX=Eigen::Dynamic, int NY=Eigen::Dynamic>
 class GenericFunctor {

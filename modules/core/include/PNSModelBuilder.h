@@ -86,7 +86,6 @@ namespace statismo {
                 MatrixXd computeRiemannianLogMap( const MatrixXd& mat ) const;
                 double computeGeodesicMeanS1( const VectorXd& angles ) const;
                 double modBy2PI( const double& x ) const;
-                // for the time being just repeat the computation
                 MatrixXd getSubsphereAxis( const MatrixXd& data, const int itype) const;
                 MatrixXd getSubsphereRadii( const MatrixXd& data, const int itype) const;
 
