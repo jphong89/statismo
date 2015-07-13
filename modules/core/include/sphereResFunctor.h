@@ -17,4 +17,7 @@ class sphereResFunctor : public GenericFunctor<double> {
         int df(const VectorXd& x, MatrixXd& fjac) const;
 };
 
+
+#include "sphereResFunctor.hxx"
+
 #endif /*__SPHERERESFUNCTOR_H__*/
