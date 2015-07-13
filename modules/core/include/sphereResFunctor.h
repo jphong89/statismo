@@ -61,4 +61,7 @@ class sphereResFunctor : public GenericFunctor<double> {
         }
 };
 
+
+#include "sphereResFunctor.hxx"
+
 #endif /*__SPHERERESFUNCTOR_H__*/
