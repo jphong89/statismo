@@ -62,9 +62,13 @@ class PNSModelBuilder : public ModelBuilder<T> {
                 MatrixXd computeRiemannianLogMap( const MatrixXd& mat ) const;
                 double computeGeodesicMeanS1( const VectorXd& angles ) const;
                 double modBy2PI( const double& x ) const;
+                // We may want to have LM optimizer as a member
+                //
+                MatrixXd axis;
+                MatrixXd radii;
                 MatrixXd getSubsphereAxis( const MatrixXd& data, const int itype) const;
                 MatrixXd getSubsphereRadii( const MatrixXd& data, const int itype) const;
-
+                void LMFsphereFit( const MatrixXd& data, const VectorXd& initialCenter, const int itype ) const;
 
         };
 
