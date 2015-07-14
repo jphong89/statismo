@@ -78,7 +78,6 @@ namespace statismo {
                 PNSModelBuilder& operator=(const PNSModelBuilder& rhs);
                 StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
 
-
                 // PNS stuff
                 // Do I want to return pointer instead of a value??
                 MatrixXd computeRotMat( const VectorXd& vec ) const;
