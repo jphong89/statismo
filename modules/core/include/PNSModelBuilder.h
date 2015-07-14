@@ -3,9 +3,6 @@
 
 #include <memory>
 #include <vector>
-// Maybe considering just defining PI? instead of including entire lib?
-#include <cmath>
-
 #include "CommonTypes.h"
 #include "Config.h"
 #include "DataManager.h"
@@ -87,13 +84,12 @@ namespace statismo {
                 double computeGeodesicMeanS1( const VectorXd& angles ) const;
                 double modBy2PI( const double& x ) const;
                 // We may want to have LM optimizer as a member
-                //
-                MatrixXd axis;
-                MatrixXd radii;
-                MatrixXd getSubsphereAxis( const MatrixXd& data, const int itype) const;
-                MatrixXd getSubsphereRadii( const MatrixXd& data, const int itype) const;
-                void LMFsphereFit( const MatrixXd& data, const VectorXd& initialCenter, const int itype ) const;
-
+                // TODO: Try to change magic numbers to enums I defined in fuctors
+                double LMsphereFit( const MatrixXd& data, VectorXd& x, const int itype = 1) const;
+                // internal objective function to be used inside getSubSphere
+                double objFn( const VectorXd& center, const MatrixXd& data, const double r ) const;
+                double computeSubSphere( VectorXd& center, double& error ) const;
+                double getSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1) const;
         };
 
 } // namespace statismo
