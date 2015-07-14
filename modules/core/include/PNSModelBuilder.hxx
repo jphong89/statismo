@@ -294,7 +294,7 @@ namespace statismo {
         PNSModelBuilder<T>::modBy2PI( const double& x ) const {
             // helper function to be used.
             // Maybe consider inlining?
-            return ( x - (2*M_PI)*floor( x / (2*M_PI) ) );
+            return ( x - (2*PI)*floor( x / (2*PI) ) );
         }
 
     template <typename T>
@@ -318,19 +318,86 @@ namespace statismo {
             auxV1.setLinSpaced(angles.size(), 0, angles.size()-1);
             auxV1 = (auxV1.array() / auxV1.size()).matrix();
 
-            meanCandidate = (angles.mean() + 2*M_PI*auxV1.array()).matrix();
+            meanCandidate = (angles.mean() + 2*PI*auxV1.array()).matrix();
             meanCandidate.unaryExpr( std::ptr_fun(modBy2PI));
 
             for(int i=0; i<angles.size(); ++i) {
                 double currCandidate = meanCandidate(i);
                 distMatrix.col(0) = ((theta.array() - currCandidate).square()).matrix();
-                distMatrix.col(1) = ((theta.array() - currCandidate + 2*M_PI).square()).matrix();
-                distMatrix.col(2) = ((currCandidate - theta.array() + 2*M_PI).square()).matrix();
+                distMatrix.col(1) = ((theta.array() - currCandidate + 2*PI).square()).matrix();
+                distMatrix.col(2) = ((currCandidate - theta.array() + 2*PI).square()).matrix();
                 currGeodVariance = (distMatrix.rowwise().minCoeff()).sum();
                 geodVariance(i) = currGeodVariance;
             }
             double minGeodVarianceValue = geodVariance.minCoeff(&idxToGeodMean);
             geodMean = modBy2PI( meanCandidate( idxToGeodMean ) );
+        }
+    template <typename T>
+        typename PNSModelBuilder<T>::double
+        PNSModelBuilder<T>::LMsphereFit( const MatrixXd& data, VectorXd& x, const int itype ) const {
+            int info;
+            int sizeX = data.rows();
+            int sizeY = data.cols();
+            double r = -1;
+
+            assert( data.rows() == x.size() ); 
+
+            // create functor
+            // do I need to dynamically create?
+            sphereResFunctor sphereResidual(sizeX,sizeY, data, itype);
+            Eigen::LevenbergMarquardt<sphereResFunctor> optimizer(sphereResidual);
+            info = optimizer.minimize(x);
+
+            if ( info > 0 ) {
+                if ( itype == 2 ) {
+                    // if great circle, then force the radius to be pi/2
+                    r = PI/2;
+                }
+                else {
+                    VectorXd fvec( data.cols() );
+                    sphereResidual(x, fvec);
+                    r = fvec.array().mean();
+                }
+            }
+            return r;
+        }
+    template <typename T>
+        typename PNSModelBuilder<T>::double
+        PNSModelBuilder<T>::objFn( const VectorXd& center, const VectorXd& data, const double r ) const {
+            // TODO:Need to test :P
+            double result = -1;
+            // take a dot product between center and the data
+            VectorXd aux1 = center.adjoint()*data;
+            VectorXd aux2 = ( ( aux1.array().acos() - r ).square() ).matrix();
+            result = aux2.array().mean();
+            return result;
+        }
+
+    template <typename T>
+        typename PNSModelBuilder<T>::double
+        PNSModelBuilder<T>::computeSubSphere( VectorXd& center, double& error ) const {
+
+            //set up initial parameters
+            int cnt = 0;
+            double Err = 1;
+            double TOL = 1e-10;
+            error = 1e10;
+            MatrixXd rotationMat;
+            while (Err > TOL) {
+                center.normalize();
+                
+            }
+
+        }
+    //double computeSubSphere( VectorXd& center, double& error );
+    template <typename T>
+        typename PNSModelBuilder<T>::double
+        PNSModelBuilder<T>::getSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1) const {
+            double r = -1;
+            // first svd
+            // There is the sign ambiguity in svd module
+            // I am not sure if this will affect the end result
+
         }
 
 } // namespace statismo
