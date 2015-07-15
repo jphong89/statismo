@@ -249,8 +249,8 @@ namespace statismo {
             }
             Eigen::VectorXd auxVec = vecUnit - mult*northPole;
             aux.normalize();
-            Eigen::MatrixXd auxMat = vecUnit*aux.transpose() - aux*vecUnit.transpose();
-            rotMat += sin(alpha)*auxMat + (cos(alpha) - 1)*(vecUnit*vecUnit.transpose() + auxVec*auxVec.transpose());
+            Eigen::MatrixXd auxMat = northPole*aux.transpose() - aux*northPole.transpose();
+            rotMat += sin(alpha)*auxMat + (cos(alpha) - 1)*(northPole*northPole.transpose() + auxVec*auxVec.transpose());
             return rotMat;
         }
     template <typename T>
@@ -377,29 +377,68 @@ namespace statismo {
 
     template <typename T>
         typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::computeSubSphere( VectorXd& center, double& error ) const {
+        PNSModelBuilder<T>::computeSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1, double& error ) const {
 
-            //set up initial parameters
-            int cnt = 0;
+            // set up initial parameters
+            int trial = 0;
+            int nTrial = 30;
             double Err = 1;
             double TOL = 1e-10;
-            error = 1e10;
-            MatrixXd rotationMat;
-            while (Err > TOL) {
+            double radius = -1;
+
+            MatrixXd rotMat( center.size(), center.size() );
+            MatrixXd rotatedData( data.rows(), data.cols() );
+            MatrixXd TanProjData( data.rows(), data.cols() );
+            VectorXd tempCenter(center.size());
+
+            while ( (Err > TOL) && (trial < nTrial) ) {
                 center.normalize();
-                
+                rotMat = computeRotMat( center );
+                rotatedData = rotMat*data;
+
+                TanProjData = computeRiemannianLogMap( rotatedData );
+                radius = LMsphereFit( TanProjData, center, itype );
+
+                center = computeRiemannianExpMap( center );
+                center = rotMat.inverse() * center;
+                double currError = objFn( center, data, radius );
+                // TODO: Change this god awful naming
+                Err = fabs( currError - error );
+                error = currError;
+                trial++;
             }
 
+            return radius;
+
         }
-    //double computeSubSphere( VectorXd& center, double& error );
     template <typename T>
         typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::getSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1) const {
-            double r = -1;
+        PNSModelBuilder<T>::getSubSphere( const MatrixXd& data, const int itype = 1) const {
             // first svd
             // There is the sign ambiguity in svd module
             // I am not sure if this will affect the end result
+            // Inputs for svd
+            
+            unsigned n = X.rows();
+            unsigned p = X.cols();
 
+            double r1 = -1;
+            VectorXd center1(n);
+            double err1 = 1e10;
+
+            JacobiSVD<MatrixXd> svd( data, ComputeThinU );
+            //VectorXd lastSingularV(n);
+            //lastSingularV = svd.matrixU().col( min(n,p) - 1 );
+
+
+
+            // Inputs for pca
+            double r2 = -1;
+            VectorXd center2;
+            double err2 = 1e10;
+
+
+            
         }
 
 } // namespace statismo
