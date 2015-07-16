@@ -412,33 +412,48 @@ namespace statismo {
         }
     template <typename T>
         typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::getSubSphere( const MatrixXd& data, const int itype = 1) const {
+        PNSModelBuilder<T>::getSubSphere( const MatrixXd& data, const int itype = 1, double& error, VectorXd& center) const {
             // first svd
             // There is the sign ambiguity in svd module
             // I am not sure if this will affect the end result
-            // Inputs for svd
             
-            unsigned n = X.rows();
-            unsigned p = X.cols();
-
+            // Inputs for svd
             double r1 = -1;
-            VectorXd center1(n);
+            // VectorXd center1(n);
             double err1 = 1e10;
 
+            unsigned n = data.rows();
+            unsigned p = data.cols();
+
             JacobiSVD<MatrixXd> svd( data, ComputeThinU );
-            //VectorXd lastSingularV(n);
-            //lastSingularV = svd.matrixU().col( min(n,p) - 1 );
-
-
+            MatrixXd U( svd.matrix() );
+            //candCenter1 = U.col( U.cols() - 1 );
+            VectorXd candCenter1( U.cols() - 1 );
+            r1 = computeSubSphere(candCenter1, data, itype, err1);
 
             // Inputs for pca
             double r2 = -1;
             VectorXd center2;
             double err2 = 1e10;
+            SelfAdjointEigenSolver<MatrixXd> es;
+            // need to center the data first
+            es.compute( data.transpose()*data*1.0/(n-1) );
+            if (es.info() != Success) abort();
+            Matrix eVecMatrix( es.eigenvectors() );
+            VectorXd candCenter2( eVecMatrix.col( eVecMatrix.cols() - 1 ) );
+            r2 = computeSubSphere(candCenter2, data, itype, err2);
 
+            if ( err1 < err2 ) {
+                center = center1;
+                return r1;
+            }
+            else {
+                center = center2;
+                return r2;
+            }
 
-            
         }
+
 
 } // namespace statismo
 #endif
