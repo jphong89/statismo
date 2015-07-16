@@ -9,8 +9,6 @@
 #include "ModelBuilder.h"
 #include "ModelInfo.h"
 #include "StatisticalModel.h"
-// To use nonlinear least square solver
-// TODO: Check the name as well as its API
 #include <Eigen/unsupported>
 #include <unsupported/Eigen/NonLinearOptimization>
 
