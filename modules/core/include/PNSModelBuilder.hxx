@@ -416,7 +416,7 @@ namespace statismo {
             // first svd
             // There is the sign ambiguity in svd module
             // I am not sure if this will affect the end result
-            
+
             // Inputs for svd
             double r1 = -1;
             // VectorXd center1(n);
@@ -451,6 +451,33 @@ namespace statismo {
                 center = center2;
                 return r2;
             }
+
+        }
+    template <typename T>
+        typename PNSModelBuilder<T>::MatrixXd
+        PNSModelBuilder<T>::PNSmain( const MatrixXd& data, const int itype = 1, MatrixXd& residualMat ) const {
+            // The main function for PNS
+            // Hypothesis Testing to be integrated
+            // May have to change interface to return p-values as well
+
+            unsigned n = data.rows();
+            unsigned p = data.cols();
+            MatrixXd nestSpheres( n, p );
+
+
+            MatrixXd currSphere( data );
+            double iRadius = 0;
+            VectorXd iCenter( data.rows() );
+            VectorXd iResidual( data.rows() );
+            double iError = 1e10;
+
+            for(int i =0; i < p-1; ++i) {
+                iRadius = getSubSphere( data, itype, iError, iCenter);
+                iResidual = ( iCenter.adjoint()*currSphere ).array() - iRadius ;
+
+
+            }
+            // The last nestedsphere is geodesic mean S1
 
         }
 
