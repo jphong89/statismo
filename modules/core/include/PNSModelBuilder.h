@@ -78,6 +78,12 @@ namespace statismo {
                 // Things to consider: Do I want to return pointer instead of a value??
                 // If I were to return as a pointer, then managing the memory would be a pain
                 // Probably good to take a look at smart pointer stuff and understand how that works
+
+
+                typedef NestedSphere_t {
+                    double radius;
+                } NestedSphere;
+
                 MatrixXd computeRotMat( const VectorXd& vec ) const;
                 MatrixXd computeRiemannianExpMap( const MatrixXd& mat ) const;
                 MatrixXd computeRiemannianLogMap( const MatrixXd& mat ) const;
@@ -90,6 +96,7 @@ namespace statismo {
                 double objFn( const VectorXd& center, const MatrixXd& data, const double r ) const;
                 double computeSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1, double& error ) const;
                 double getSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1) const;
+                MatrixXd PNSmain( const MatrixXd& data, const int itype = 1, MatrixXd& residualMat ) const;
         };
 
 } // namespace statismo
