@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <vector>
+using std::vector;
+
 #include "CommonTypes.h"
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -16,44 +18,45 @@ using Eigen::RowVectorXd;
 // 2. Make sure to cast as double
 // 3. Use column major matrix for computation but as for interfacing with the outside, return as a row major matrix
 // 4. Set up the class to use GTest framework
-namespace statismo {
+namespace pns {
     template <typename T>
         class PNS{
             private:
                 // enum for iteration type
                 // TODO: SEQTEST to be implemented later
                 typedef enum itype_t {
-                    SEQTEST,
-                    SMALL,
-                    GREAT
+                    SEQTEST = 0,
+                    SMALL   = 1,
+                    GREAT   = 2
                 } itype;
 
                 itype flag_;
                 MatrixXd data_;
                 // PNS data structures
-                vector < VectorXd > orthaxis;
+                vector < VectorXd* > orthaxis;
                 VectorXd radii;
                 VectorXd dist;
-                //                 VectorXd pvalues; // TODO: To be used later
+                // VectorXd pvalues; // TODO: To be used later
 
-                MatrixXd computeRotMat( const VectorXd& vec );
-                MatrixXd computeRiemannianExpMap( const MatrixXd& mat );
-                MatrixXd computeRiemannianLogMap( const MatrixXd& mat );
-                double modBy2PI( const double& x ) { return  ( x - (2*PI)*floor( x / (2*PI) ) ); }; // Apparently compiler internally inline this function if it can see in the header.
-                double computeGeodesicMeanS1( const VectorXd& angles );
             public:
                 // NOTE: punted the job to convert data into column major matrix to the caller
                 PNS( const MatrixXd& data, const unsigned int flag = 2 ) : flag_( staic_cast<itype>( flag ) ), data_( data ) { } ;
-                ~PNS(){ };
+                ~PNS();
+                MatrixXd computeRotMat( const VectorXd& vec );
+                MatrixXd computeRiemannianExpMap( const MatrixXd& mat );
+                MatrixXd computeRiemannianLogMap( const MatrixXd& mat );
+                double computeGeodesicMeanS1( const VectorXd& angles );
+                double modBy2PI( const double& x ) const;
+                // We may want to have LM optimizer as a member
                 // TODO: Try to change magic numbers to enums I defined in fuctors
-                double LMsphereFit( const MatrixXd& data, VectorXd& x, const int itype = 2);
+                //double LMsphereFit( const MatrixXd& data, VectorXd& x, const int itype = 1) const;
                 // internal objective function to be used inside getSubSphere
                 double objFn( const VectorXd& center );
                 double computeSubSphere( VectorXd& center);
                 void compute(); // this corresponds to PNSmain.m
         };
 
-        };
+};
 
 } // namespace statismo
 
