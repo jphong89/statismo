@@ -55,9 +55,6 @@ class PNSModelBuilder : public ModelBuilder<T> {
                 // Probably good to take a look at smart pointer stuff and understand how that works
 
 
-                typedef NestedSphere_t {
-                    double radius;
-                } NestedSphere;
 
                 MatrixXd computeRotMat( const VectorXd& vec ) const;
                 MatrixXd computeRiemannianExpMap( const MatrixXd& mat ) const;
