@@ -3,8 +3,6 @@
 
 #include <memory>
 #include <vector>
-using std::vector;
-
 #include "CommonTypes.h"
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -55,6 +53,7 @@ namespace statismo {
                 void compute(); // this corresponds to PNSmain.m
         };
 
+        };
 
 } // namespace statismo
 

@@ -7,7 +7,7 @@
 class sphereResFunctor : public GenericFunctor<double> {
     public:
         typedef enum mode_t{
-            ST=0,
+            HT=0,
             SC=1,
             GC=2
         } mode_t;
