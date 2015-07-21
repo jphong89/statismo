@@ -9,7 +9,6 @@
 #include "ModelBuilder.h"
 #include "ModelInfo.h"
 #include "StatisticalModel.h"
-#include <Eigen/unsupported>
 #include <unsupported/Eigen/NonLinearOptimization>
 
 namespace statismo {
