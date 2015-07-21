@@ -4,72 +4,6 @@
 #include "PNS.h"
 
 namespace statismo {
-    template <typename T> 
-        MatrixXd PNS<T>::computeRotMat( const VectorXd& vec ) const {
-
-            MatrixXd rotMat( vec.size(), vec.size() );
-            rotMat.setIdentity();
-
-            VectorXd northPole = VectorXd::Zero( vec.size() );
-            northPole( vec.size() - 1 ) = 1;
-
-            VectorXd vecUnit = vec;
-            vecUnit.normalize();
-
-            double mult = northPole.adjoint() * vecUnit;
-            double alpha = acos( mult );
-
-            if ( fabs( mult - 1) < 1e-15 ) {
-                return rotMat;
-            }
-            if ( fabs( mult +1) < 1e-15 ) {
-                rotMat*= -1;
-                return rotMat;
-            }
-            VectorXd auxVec = vecUnit - mult*northPole;
-            auxVec.normalize();
-            MatrixXd auxMat = northPole*auxVec.transpose() - auxVec*northPole.transpose();
-            rotMat += sin(alpha)*auxMat + (cos(alpha) - 1)*(northPole*northPole.transpose() + auxVec*auxVec.transpose());
-
-            return rotMat;
-        }
-
-    template <typename T>
-        MatrixXd PNS<T>::computeRiemannianExpMap( const MatrixXd& mat ) const {
-
-            MatrixXd result( mat.rows()+1, mat.cols() );
-            RowVectorXd normVec     = mat.colwise().norm();
-            RowVectorXd normVec2    = (normVec.array() < 1e-16).select(0,normVec);
-            RowVectorXd sineVec     = normVec2.array().sin();
-            RowVectorXd cosVec      = normVec2.array().cos();
-            RowVectorXd denoVec     = (normVec2.array() < 1e-16).select(1, normVec);
-
-            RowVectorXd auxVec      = sineVec.array() / (denoVec.array());
-            MatrixXd    auxMat      = auxVec.replicate( mat.rows(), 1 );
-            auxMat                  = (auxMat.array() * mat.array()).matrix();
-            result << auxMat, cosVec;
-            return result;
-        }
-    template <typename T>
-        MatrixXd PNS<T>::computeRiemannianLogMap( const MatrixXd& mat ) const {
-
-            MatrixXd result(mat.rows()-1, mat.cols());
-
-            RowVectorXd lastRow = mat.row(mat.rows() - 1);
-            //RowVectorXd auxV1   = (lastRow.array() * lastRow.array()).matrix();
-            RowVectorXd auxV1   = ( lastRow.array().square() ).matrix();
-            RowVectorXd denomV  = ( (1 - auxV1.array() ).sqrt()).matrix();
-            RowVectorXd numerV  = ( lastRow.array().acos() ).matrix();
-            RowVectorXd auxV3   = ( numerV.array() ) / ( denomV.array() );
-            // This line is to check for NaN occurrences.
-            // If any entry in auxV3 is NaN then replace it with 1.
-            RowVectorXd scale   = (denomV.array() < 1e-64 && numerV.array() < 1e-64).select(1,auxV3); 
-            MatrixXd    auxM1   = scale.replicate( mat.rows() - 1, 1 );
-            MatrixXd    auxM2   = (mat.topRows( mat.rows() - 1 ));
-            result  = (auxM1.array() * auxM2.array()).matrix();
-
-            return result;
-        }
     template <typename T>
         double PNS<T>::computeGeodesicMeanS1( const VectorXd& angles ) {
             VectorXd meanCandidate( angles.size() );
@@ -423,5 +357,4 @@ namespace statismo {
             return result;
         }
 
-} // namespace statismo
 #endif // __PNS_TXX__

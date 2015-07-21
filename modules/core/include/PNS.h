@@ -3,8 +3,8 @@
 
 #include <memory>
 #include <vector>
-using std::vector;
-//#include "CommonTypes.h"
+#include "CommonTypes.h"
+#include "GenericFunctor.h"
 #include <unsupported/Eigen/NonLinearOptimization>
 using Eigen::LevenbergMarquardt;
 #include <Eigen/Dense>
@@ -66,7 +66,6 @@ namespace statismo {
                 MatrixXd computeS2E( const MatrixXd& sphereData ) const;
                 MatrixXd computeE2S( const MatrixXd& euclideanData ) const;
         };
-
 
 } // namespace statismo
 
