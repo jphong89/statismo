@@ -41,21 +41,20 @@ namespace statismo {
                 MatrixXd computeRotMat( const VectorXd& vec );
                 MatrixXd computeRiemannianExpMap( const MatrixXd& mat );
                 MatrixXd computeRiemannianLogMap( const MatrixXd& mat );
-                double modBy2PI( const double& x );
+                double modBy2PI( const double& x ) { return  ( x - (2*PI)*floor( x / (2*PI) ) ); }; // Apparently compiler internally inline this function if it can see in the header.
                 double computeGeodesicMeanS1( const VectorXd& angles );
             public:
                 // NOTE: punted the job to convert data into column major matrix to the caller
                 PNS( const MatrixXd& data, const unsigned int flag = 2 ) : flag_( staic_cast<itype>( flag ) ), data_( data ) { } ;
-                ~PNS();
+                ~PNS(){ };
                 // TODO: Try to change magic numbers to enums I defined in fuctors
-                double LMsphereFit( const MatrixXd& data, VectorXd& x, const int itype = 1);
+                double LMsphereFit( const MatrixXd& data, VectorXd& x, const int itype = 2);
                 // internal objective function to be used inside getSubSphere
                 double objFn( const VectorXd& center );
                 double computeSubSphere( VectorXd& center);
                 void compute(); // this corresponds to PNSmain.m
         };
 
-};
 
 } // namespace statismo
 
