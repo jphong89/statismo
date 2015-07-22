@@ -69,15 +69,15 @@ namespace statismo {
             result  = auxM1.array() * auxM2.array();
         }
 
-    template <typename T>
-        double PNS<T>::modBy2PI( const double& x ) {
-            // helper function to be used.
-            // Maybe consider inlining?
-            return ( x - (2*PI)*floor( x / (2*PI) ) );
-        }
+//     template <typename T>
+//         double PNS<T>::modBy2PI( const double& x ) {
+//             // helper function to be used.
+//             // Maybe consider inlining?
+//             return ( x - (2*PI)*floor( x / (2*PI) ) );
+//         }
 
     template <typename T>
-        double PNS<T>::computeGeodesicMeanS1( const VectorXd& angles ) const {
+        double PNS<T>::computeGeodesicMeanS1( const VectorXd& angles ) {
             VectorXd meanCandidate( angles.size() );
             VectorXd auxV1( angles.size() );
             VectorXd theta( angles.size() );
