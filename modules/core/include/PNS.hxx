@@ -8,7 +8,7 @@ namespace statismo {
         MatrixXd PNS<T>::computeRotMat( const VectorXd& vec ) {
 
             MatrixXd rotMat( vec.size(), vec.size() );
-            roMat.setIdentity();
+            rotMat.setIdentity();
 
             VectorXd northPole = Eigen::Zero( vec.size() );
             northPole( vec.size() - 1 ) = 1;
@@ -27,8 +27,8 @@ namespace statismo {
                 return rotMat;
             }
             VectorXd auxVec = vecUnit - mult*northPole;
-            aux.normalize();
-            MatrixXd auxMat = northPole*aux.transpose() - aux*northPole.transpose();
+            auxVec.normalize();
+            MatrixXd auxMat = northPole*auxVec.transpose() - auxVec*northPole.transpose();
             rotMat += sin(alpha)*auxMat + (cos(alpha) - 1)*(northPole*northPole.transpose() + auxVec*auxVec.transpose());
 
             return rotMat;
