@@ -7,7 +7,8 @@ using Eigen::VectorXd;
 
 template <typename _Scalar, int NX=Eigen::Dynamic, int NY=Eigen::Dynamic>
 class GenericFunctor {
-    public:
+    protected:
+    //public:
         typedef _Scalar Scalar;
         enum{
             InputsAtCompileTime = NX,
@@ -21,6 +22,7 @@ class GenericFunctor {
 
         //VectorXd m_y;
         ValueType m_y;
+        public:
         GenericFunctor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
         GenericFunctor(int inputs, int values, const ValueType& y) : m_inputs(inputs), m_values(values), m_y(y) {}
 

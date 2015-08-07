@@ -72,7 +72,6 @@ namespace statismo {
                 PNSModelBuilder& operator=(const PNSModelBuilder& rhs);
                 StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
 
-
                 // PNS stuff
                 // Things to consider: Do I want to return pointer instead of a value??
                 // If I were to return as a pointer, then managing the memory would be a pain
@@ -94,18 +93,6 @@ namespace statismo {
                 double getSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1) const;
                 MatrixXd PNSmain( const MatrixXd& data, const int itype = 1, MatrixXd& residualMat ) const;
         };
-
-} // namespace statismo
-
-#include "PNSModelBuilder.hxx"
-    StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
-    // PNS stuff
-    // Do I want to return pointer instead of a value??
-    MatrixXd computeRotMat( VectorXd vec ) const;
-    MatrixXd computeRiemannianExpMap( MatrixXd mat ) const;
-
-
-};
 
 } // namespace statismo
 
