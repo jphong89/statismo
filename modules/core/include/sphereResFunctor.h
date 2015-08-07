@@ -1,19 +1,19 @@
-#ifndef __FUNCTOR_H__
-#define __FUNCTOR_H__
+#ifndef __SPHERERESFUNCTOR_H__
+#define __SPHERERESFUNCTOR_H__
 #include "GenericFunctor.h"
+//TODO: replace cmath header with CommonType.h and replace every M_PI with PI
+#include <cmath> // To be replace with CommonType.h
 
 class sphereResFunctor : public GenericFunctor<double> {
     public:
         typedef enum mode_t{
-            HT,
-            SC,
-            GC,
-            NumEnum
+            SEQTEST,
+            SMALL,
+            GREAT
         } mode_t;
         mode_t m_mode;
         sphereResFunctor(int sizeX, int sizeY, const ValueType& y, int mode): GenericFunctor<double>(sizeX, sizeY, y), m_mode( static_cast<mode_t>(mode) ) {}; 
-
-        int operator() (const VectorXd& x, VectorXd& fvec) const {
+        double operator() (const VectorXd& x, VectorXd& fvec) const {
             assert(x.size()==inputs());
             assert(fvec.size()==values());
 
@@ -25,15 +25,15 @@ class sphereResFunctor : public GenericFunctor<double> {
             auxMatrix   = ( (m_y.array() - inputMatrix.array()).square() ).matrix();
 
             VectorXd di = (auxMatrix.colwise().sum()).array().sqrt().matrix();
-            if(m_mode != GC) {
+            if(m_mode != GREAT) {
                 radius = di.array().mean();
             }
             else {
-                radius = M_PI / 2;
+                radius = M_PI / 2; // To be replaced with PI
             }
 
             fvec = ( di.array() - radius ).matrix();
-            return 0;
+            return radius;
         }
         int df(const VectorXd& x, MatrixXd& fjac) const {
 
@@ -56,4 +56,4 @@ class sphereResFunctor : public GenericFunctor<double> {
         }
 };
 
-#endif //__FUNCTOR_H__
+#endif //__SPHERERESFUNCTOR_H__
