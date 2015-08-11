@@ -9,7 +9,7 @@
 #include "ModelBuilder.h"
 #include "ModelInfo.h"
 #include "StatisticalModel.h"
-#include <unsupported/Eigen/NonLinearOptimization>
+#include "PNS.h"
 
 namespace statismo {
 
@@ -23,9 +23,6 @@ namespace statismo {
                 typedef typename Superclass::DataManagerType DataManagerType;
                 typedef typename Superclass::StatisticalModelType StatisticalModelType;
                 typedef typename DataManagerType::DataItemListType DataItemListType;
-                typedef typename Eigen::MatrixXd MatrixXd;
-                typedef typename Eigen::VectorXd VectorXd;
-                typedef typename Eigen::RowVectorXd RowVectorXd;
 
                 typedef enum { JacobiSVD, SelfAdjointEigenSolver } EigenValueMethod;
 
@@ -63,7 +60,7 @@ namespace statismo {
                  * \return A new Statistical model
                  * \warning The method allocates a new Statistical Model object, that needs to be deleted by the user.
                  */
-                StatisticalModelType* BuildNewModel(const DataItemListType& samples, double noiseVariance, bool computeScores = true, EigenValueMethod method = JacobiSVD) const;
+                StatisticalModelType* BuildNewModel(const DataItemListType& samples, double noiseVariance, bool computeScores = true, EigenValueMethod method = JacobiSVD, itype flag = static_cast<itype>(2) ) const;
 
             private:
                 // to prevent use
@@ -71,27 +68,6 @@ namespace statismo {
                 PNSModelBuilder(const PNSModelBuilder& orig);
                 PNSModelBuilder& operator=(const PNSModelBuilder& rhs);
                 StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
-
-                // PNS stuff
-                // Things to consider: Do I want to return pointer instead of a value??
-                // If I were to return as a pointer, then managing the memory would be a pain
-                // Probably good to take a look at smart pointer stuff and understand how that works
-
-
-
-                MatrixXd computeRotMat( const VectorXd& vec ) const;
-                MatrixXd computeRiemannianExpMap( const MatrixXd& mat ) const;
-                MatrixXd computeRiemannianLogMap( const MatrixXd& mat ) const;
-                double computeGeodesicMeanS1( const VectorXd& angles ) const;
-                double modBy2PI( const double& x ) const;
-                // We may want to have LM optimizer as a member
-                // TODO: Try to change magic numbers to enums I defined in fuctors
-                double LMsphereFit( const MatrixXd& data, VectorXd& x, const int itype = 1) const;
-                // internal objective function to be used inside getSubSphere
-                double objFn( const VectorXd& center, const MatrixXd& data, const double r ) const;
-                double computeSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1, double& error ) const;
-                double getSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1) const;
-                MatrixXd PNSmain( const MatrixXd& data, const int itype = 1, MatrixXd& residualMat ) const;
         };
 
 } // namespace statismo
