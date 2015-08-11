@@ -58,7 +58,7 @@ namespace statismo {
 
     template <typename T>
         typename PNSModelBuilder<T>::StatisticalModelType*
-        PNSModelBuilder<T>::BuildNewModel(const DataItemListType& sampleDataList, double noiseVariance, bool computeScores, EigenValueMethod method) const {
+        PNSModelBuilder<T>::BuildNewModel(const DataItemListType& sampleDataList, double noiseVariance, bool computeScores, EigenValueMethod method, itype flag) const {
 
             unsigned n = sampleDataList.size();
             if (n <= 0) {
@@ -79,13 +79,40 @@ namespace statismo {
                 assert ((*it)->GetRepresenter() == representer); // all samples have the same representer
                 X.row(i++) = (*it)->GetSampleVector();
             }
+            // TODO:
+            // This is where I transpose to convert data matrix from row major to col major
+            // Check to see if this would affect the rest of the pipeline such as
+            // 1. drawing mean
+            // 2. drawing sample
+            // etc.
+            // Also check how computeScores would interact
+            
+            // Create temp. matrix. May want to replace this with X
+            Eigen::MatrixXd x_sphere_data(p,n);
+            //copy original data into x_sphere_data
+            for(int i = 0; i < X.size(); ++i) {
+                // casting every element to double precision
+                *(x_sphere_data.data() + i) = static_cast<double>(*(X.data()+i));
+            } 
+            // record scale
+            Eigen::RowVectorXd scale(n);
+            scale = x_sphere_data.colwise().norm();
+            x_sphere_data.colwise().normalize();
+            //x_sphere_data.conservativeResize(p+1, n);
+            //x_sphere_data.row(p) = scale;
 
+            PNS<double> pns_internal(x_sphere_data, flag);
+            Eigen::MatrixXd x_euclidean_data = pns_internal.compute();
+            x_euclidean_data.conservativeResize(x_euclidean_data.rows()+1,x_euclidean_data.cols());
+            x_euclidean_data.row( x_euclidean_data.rows() ) = scale;
 
+            // PNS<double> foo( data, 2 )
             // build the model
-            StatisticalModelType* model = BuildNewModelInternal(representer, X, noiseVariance, method);
+            x_euclidean_data.transposeInPlace();
+            StatisticalModelType* model = BuildNewModelInternal(representer, x_euclidean_data, noiseVariance, method);
             MatrixType scores;
             if (computeScores) {
-                scores = this->ComputeScores(X, model);
+                scores = this->ComputeScores(x_euclidean_data, model);
             }
 
 
@@ -119,7 +146,8 @@ namespace statismo {
     template <typename T>
         typename PNSModelBuilder<T>::StatisticalModelType*
         PNSModelBuilder<T>::BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method) const {
-
+            // TODO:    1. create PNS object
+            //          2. Then call compute()
             unsigned n = X.rows();
             unsigned p = X.cols();
 
@@ -176,7 +204,8 @@ namespace statismo {
                         StatisticalModelType* model = StatisticalModelType::Create(representer, mu, pcaBasis, pcaVariance, noiseVariance);
 
                         return model;
-                    } else {
+                    } 
+                    else {
                         // we compute an SVD of the full p x p  covariance matrix 1/(n-1) X0^TX0 directly
                         SVDType SVD(X0.transpose() * X0 * 1.0/(n-1), Eigen::ComputeThinU);
                         VectorType singularValues = SVD.singularValues();
@@ -194,292 +223,35 @@ namespace statismo {
                     }
                     break;
 
-                case SelfAdjointEigenSolver: {
-                                                 // we compute the eigenvalues/eigenvectors of the full p x p  covariance matrix 1/(n-1) X0^TX0 directly
+                case SelfAdjointEigenSolver: 
+                    // we compute the eigenvalues/eigenvectors of the full p x p  covariance matrix 1/(n-1) X0^TX0 directly
 
-                                                 typedef Eigen::SelfAdjointEigenSolver<MatrixType> SelfAdjointEigenSolver;
-                                                 SelfAdjointEigenSolver es;
-                                                 es.compute(X0.transpose() * X0 * 1.0/(n-1));
-                                                 VectorType eigenValues = es.eigenvalues().reverse(); // SelfAdjointEigenSolver orders the eigenvalues in increasing order
+                    typedef Eigen::SelfAdjointEigenSolver<MatrixType> SelfAdjointEigenSolver;
+                    SelfAdjointEigenSolver es;
+                    es.compute(X0.transpose() * X0 * 1.0/(n-1));
+                    VectorType eigenValues = es.eigenvalues().reverse(); // SelfAdjointEigenSolver orders the eigenvalues in increasing order
 
 
-                                                 unsigned numComponentsToKeep = ((eigenValues.array() - noiseVariance - Superclass::TOLERANCE) > 0).count();
-                                                 MatrixType pcaBasis = es.eigenvectors().rowwise().reverse().topLeftCorner(p, numComponentsToKeep);
+                    unsigned numComponentsToKeep = ((eigenValues.array() - noiseVariance - Superclass::TOLERANCE) > 0).count();
+                    MatrixType pcaBasis = es.eigenvectors().rowwise().reverse().topLeftCorner(p, numComponentsToKeep);
 
-                                                 if (numComponentsToKeep == 0) {
-                                                     throw StatisticalModelException("All the eigenvalues are below the given tolerance. Model cannot be built.");
-                                                 }
+                    if (numComponentsToKeep == 0) {
+                        throw StatisticalModelException("All the eigenvalues are below the given tolerance. Model cannot be built.");
+                    }
 
-                                                 VectorType sampleVarianceVector = eigenValues.topRows(numComponentsToKeep);
-                                                 VectorType pcaVariance = (sampleVarianceVector - VectorType::Ones(numComponentsToKeep) * noiseVariance);
-                                                 StatisticalModelType* model = StatisticalModelType::Create(representer, mu, pcaBasis, pcaVariance, noiseVariance);
-                                                 return model;
-                                             }
-                                             break;
+                    VectorType sampleVarianceVector = eigenValues.topRows(numComponentsToKeep);
+                    VectorType pcaVariance = (sampleVarianceVector - VectorType::Ones(numComponentsToKeep) * noiseVariance);
+                    StatisticalModelType* model = StatisticalModelType::Create(representer, mu, pcaBasis, pcaVariance, noiseVariance);
+                    return model;
+
+                    break;
 
                 default:
-                                             throw StatisticalModelException("Unrecognized decomposition/eigenvalue solver method.");
-                                             return 0;
-                                             break;
+                    throw StatisticalModelException("Unrecognized decomposition/eigenvalue solver method.");
+                    return 0;
+                    break;
             }
         }
-
-    template <typename T>
-        typename PNSModelBuilder<T>::MatrixXd
-        PNSModelBuilder<T>::computeRotMat( const VectorXd& vec ) const {
-
-            Eigen::MatrixXd rotMat( vec.size(), vec.size() );
-            roMat.setIdentity();
-
-            Eigen::VectorXd northPole = Eigen::Zero( vec.size() );
-            northPole( vec.size() - 1 ) = 1;
-
-            Eigen::VectorXd vecUnit = vec;
-            vecUnit.normalize();
-
-            double mult = northPole.adjoint() * vecUnit;
-            double alpha = acos( mult );
-
-            if ( abs( mult -1) < 1e-15 ) {
-                return rotMat;
-            }
-            if ( abs( mult +1) < 1e-15 ) {
-                rotMat*= -1;
-                return rotMat;
-            }
-            Eigen::VectorXd auxVec = vecUnit - mult*northPole;
-            aux.normalize();
-            Eigen::MatrixXd auxMat = northPole*aux.transpose() - aux*northPole.transpose();
-            rotMat += sin(alpha)*auxMat + (cos(alpha) - 1)*(northPole*northPole.transpose() + auxVec*auxVec.transpose());
-            return rotMat;
-        }
-    template <typename T>
-        typename PNSModelBuilder<T>::MatrixXd 
-        PNSModelBuilder<T>::computeRiemannianExpMap( const MatrixXd& mat ) const {
-            
-            MatrixXd result( mat.rows()+1, mat.cols() );
-            
-            RowVectorXd normVec     = mat.colwise().norm();
-            RowVectorXd normVec2    = (normVec.array() < 1e-16).select(0,normVec);
-            RowVectorXd sineVec     = normVec2.array().sin();
-            RowVectorXd cosVec      = normVec2.array().cos();
-
-            RowVectorXd auxVec      = sineVec.array() / normVec.array();            
-            MatrixXd    auxMat      = auxVec.replicate( mat.rows(), 1 );
-            auxMat                  = (auxMat.array() * mat.array()).matrix();
-            result << auxMat, cosVec;
-            
-            return result;
-
-        }
-    template <typename T>
-        typename PNSModelBuilder<T>::MatrixXd
-        PNSModelBuilder<T>::computeRiemannianLogMap( const VectorXd& angles ) const {
-
-            MatrixXd result(mat.rows()-1, mat.cols());
-            
-            RowVectorXd lastRow = mat.row(mat.rows() - 1);
-            RowVectorXd auxV1   = (lastRow.array() * lastRow.array()).matrix();
-                        auxV1   = (1 - auxV1.array()).matrix();
-            RowVectorXd auxV2   = (lastRow.array().acos()).matrix();
-            RowVectorXd auxV3   = auxV1.array() / auxV2.array();
-            RowVectorXd scale   = (auxV1.array() < 1e-64 && auxV2.array() < 1e-64).select(1,auxV3);
-            MatrixXd    auxM1   = scale.replicate( mat.rows() - 1, 1 );
-            MatrixXd    auxM2   = (mat.topRows( mat.rows() - 1 ));
-                        result  = auxM1.array() * auxM2.array();
-
-        }
-    template <typename T>
-        typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::modBy2PI( const double& x ) const {
-            // helper function to be used.
-            // Maybe consider inlining?
-            return ( x - (2*PI)*floor( x / (2*PI) ) );
-        }
-
-    template <typename T>
-        typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::computeGeodesicMeanS1( const VectorXd& angles ) const {
-            VectorXd meanCandidate( angles.size() );
-            VectorXd auxV1( angles.size() );
-            VectorXd theta( angles.size() );
-            MatrixXd distMatrix( angles.size(), 3 );
-            VectorXd geodVariance( angles.size() );
-            double currCandidate(0);
-            double currGeodVariance(0);
-            int idxToGeodMean(0);
-            double geodMean(0);
-
-
-            // same as theta = mod( angles, 2*pi ) in MATLAB
-            theta = angles.unaryExpr( std::ptr_fun(modBy2PI) );
-
-            // Generating mean candidates
-            auxV1.setLinSpaced(angles.size(), 0, angles.size()-1);
-            auxV1 = (auxV1.array() / auxV1.size()).matrix();
-
-            meanCandidate = (angles.mean() + 2*PI*auxV1.array()).matrix();
-            meanCandidate.unaryExpr( std::ptr_fun(modBy2PI));
-
-            for(int i=0; i<angles.size(); ++i) {
-                double currCandidate = meanCandidate(i);
-                distMatrix.col(0) = ((theta.array() - currCandidate).square()).matrix();
-                distMatrix.col(1) = ((theta.array() - currCandidate + 2*PI).square()).matrix();
-                distMatrix.col(2) = ((currCandidate - theta.array() + 2*PI).square()).matrix();
-                currGeodVariance = (distMatrix.rowwise().minCoeff()).sum();
-                geodVariance(i) = currGeodVariance;
-            }
-            double minGeodVarianceValue = geodVariance.minCoeff(&idxToGeodMean);
-            geodMean = modBy2PI( meanCandidate( idxToGeodMean ) );
-        }
-    template <typename T>
-        typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::LMsphereFit( const MatrixXd& data, VectorXd& x, const int itype ) const {
-            int info;
-            int sizeX = data.rows();
-            int sizeY = data.cols();
-            double r = -1;
-
-            assert( data.rows() == x.size() ); 
-
-            // create functor
-            // do I need to dynamically create?
-            sphereResFunctor sphereResidual(sizeX,sizeY, data, itype);
-            Eigen::LevenbergMarquardt<sphereResFunctor> optimizer(sphereResidual);
-            info = optimizer.minimize(x);
-
-            if ( info > 0 ) {
-                if ( itype == 2 ) {
-                    // if great circle, then force the radius to be pi/2
-                    r = PI/2;
-                }
-                else {
-                    VectorXd fvec( data.cols() );
-                    sphereResidual(x, fvec);
-                    r = fvec.array().mean();
-                }
-            }
-            return r;
-        }
-    template <typename T>
-        typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::objFn( const VectorXd& center, const VectorXd& data, const double r ) const {
-            // TODO:Need to test :P
-            double result = -1;
-            // take a dot product between center and the data
-            VectorXd aux1 = center.adjoint()*data;
-            VectorXd aux2 = ( ( aux1.array().acos() - r ).square() ).matrix();
-            result = aux2.array().mean();
-            return result;
-        }
-
-    template <typename T>
-        typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::computeSubSphere( VectorXd& center, const MatrixXd& data, const int itype = 1, double& error ) const {
-
-            // set up initial parameters
-            int trial = 0;
-            int nTrial = 30;
-            double Err = 1;
-            double TOL = 1e-10;
-            double radius = -1;
-
-            MatrixXd rotMat( center.size(), center.size() );
-            MatrixXd rotatedData( data.rows(), data.cols() );
-            MatrixXd TanProjData( data.rows(), data.cols() );
-            VectorXd tempCenter(center.size());
-
-            while ( (Err > TOL) && (trial < nTrial) ) {
-                center.normalize();
-                rotMat = computeRotMat( center );
-                rotatedData = rotMat*data;
-
-                TanProjData = computeRiemannianLogMap( rotatedData );
-                radius = LMsphereFit( TanProjData, center, itype );
-
-                center = computeRiemannianExpMap( center );
-                center = rotMat.inverse() * center;
-                double currError = objFn( center, data, radius );
-                // TODO: Change this god awful naming
-                Err = fabs( currError - error );
-                error = currError;
-                trial++;
-            }
-
-            return radius;
-
-        }
-    template <typename T>
-        typename PNSModelBuilder<T>::double
-        PNSModelBuilder<T>::getSubSphere( const MatrixXd& data, const int itype = 1, double& error, VectorXd& center) const {
-            // first svd
-            // There is the sign ambiguity in svd module
-            // I am not sure if this will affect the end result
-
-            // Inputs for svd
-            double r1 = -1;
-            // VectorXd center1(n);
-            double err1 = 1e10;
-
-            unsigned n = data.rows();
-            unsigned p = data.cols();
-
-            JacobiSVD<MatrixXd> svd( data, ComputeThinU );
-            MatrixXd U( svd.matrix() );
-            //candCenter1 = U.col( U.cols() - 1 );
-            VectorXd candCenter1( U.cols() - 1 );
-            r1 = computeSubSphere(candCenter1, data, itype, err1);
-
-            // Inputs for pca
-            double r2 = -1;
-            VectorXd center2;
-            double err2 = 1e10;
-            SelfAdjointEigenSolver<MatrixXd> es;
-            // need to center the data first
-            es.compute( data.transpose()*data*1.0/(n-1) );
-            if (es.info() != Success) abort();
-            Matrix eVecMatrix( es.eigenvectors() );
-            VectorXd candCenter2( eVecMatrix.col( eVecMatrix.cols() - 1 ) );
-            r2 = computeSubSphere(candCenter2, data, itype, err2);
-
-            if ( err1 < err2 ) {
-                center = center1;
-                return r1;
-            }
-            else {
-                center = center2;
-                return r2;
-            }
-
-        }
-    template <typename T>
-        typename PNSModelBuilder<T>::MatrixXd
-        PNSModelBuilder<T>::PNSmain( const MatrixXd& data, const int itype = 1, MatrixXd& residualMat ) const {
-            // The main function for PNS
-            // Hypothesis Testing to be integrated
-            // May have to change interface to return p-values as well
-
-            unsigned n = data.rows();
-            unsigned p = data.cols();
-            MatrixXd nestSpheres( n, p );
-
-
-            MatrixXd currSphere( data );
-            double iRadius = 0;
-            VectorXd iCenter( data.rows() );
-            VectorXd iResidual( data.rows() );
-            double iError = 1e10;
-
-            for(int i =0; i < p-1; ++i) {
-                iRadius = getSubSphere( data, itype, iError, iCenter);
-                iResidual = ( iCenter.adjoint()*currSphere ).array() - iRadius ;
-
-
-            }
-            // The last nestedsphere is geodesic mean S1
-
-        }
-
 
 } // namespace statismo
 #endif
