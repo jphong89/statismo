@@ -72,7 +72,6 @@ namespace statismo {
                 PNSModelBuilder& operator=(const PNSModelBuilder& rhs);
                 StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
 
-
                 // PNS stuff
                 // Things to consider: Do I want to return pointer instead of a value??
                 // If I were to return as a pointer, then managing the memory would be a pain
