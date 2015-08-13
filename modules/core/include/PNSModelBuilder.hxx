@@ -79,6 +79,11 @@ namespace statismo {
                 assert ((*it)->GetRepresenter() == representer); // all samples have the same representer
                 X.row(i++) = (*it)->GetSampleVector();
             }
+
+            // translate positions centered at the mean of each sample
+//            RowVectorType mu = X.colwise().mean(); // needs to be row vector
+//            MatrixType X0 = X.rowwise() - mu;
+
             // TODO:
             // This is where I transpose to convert data matrix from row major to col major
             // Check to see if this would affect the rest of the pipeline such as
@@ -86,20 +91,19 @@ namespace statismo {
             // 2. drawing sample
             // etc.
             // Also check how computeScores would interact
-            
+
             // Create temp. matrix. May want to replace this with X
             Eigen::MatrixXd x_sphere_data(p,n);
             //copy original data into x_sphere_data
             for(int i = 0; i < X.size(); ++i) {
                 // casting every element to double precision
-                *(x_sphere_data.data() + i) = static_cast<double>(*(X.data()+i));
+                *(x_sphere_data.data() + i) = static_cast<double>(*(X0.data()+i));
             } 
             // record scale
             Eigen::RowVectorXd scale(n);
             scale = x_sphere_data.colwise().norm();
+            double geo_mean_scale = scale.array().log().mean().exp();
             x_sphere_data.colwise().normalize();
-            //x_sphere_data.conservativeResize(p+1, n);
-            //x_sphere_data.row(p) = scale;
 
             PNS<double> pns_internal(x_sphere_data, flag);
             Eigen::MatrixXd x_euclidean_data = pns_internal.compute();
@@ -108,7 +112,9 @@ namespace statismo {
 
             // PNS<double> foo( data, 2 )
             // build the model
-            x_euclidean_data.transposeInPlace();
+            //x_euclidean_data.transposeInPlace();
+            MatrixType x_euclidean_float(n,p);
+
             StatisticalModelType* model = BuildNewModelInternal(representer, x_euclidean_data, noiseVariance, method);
             MatrixType scores;
             if (computeScores) {
@@ -146,8 +152,6 @@ namespace statismo {
     template <typename T>
         typename PNSModelBuilder<T>::StatisticalModelType*
         PNSModelBuilder<T>::BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method) const {
-            // TODO:    1. create PNS object
-            //          2. Then call compute()
             unsigned n = X.rows();
             unsigned p = X.cols();
 
@@ -223,7 +227,7 @@ namespace statismo {
                     }
                     break;
 
-                case SelfAdjointEigenSolver: 
+                case SelfAdjointEigenSolver: {
                     // we compute the eigenvalues/eigenvectors of the full p x p  covariance matrix 1/(n-1) X0^TX0 directly
 
                     typedef Eigen::SelfAdjointEigenSolver<MatrixType> SelfAdjointEigenSolver;
@@ -243,7 +247,7 @@ namespace statismo {
                     VectorType pcaVariance = (sampleVarianceVector - VectorType::Ones(numComponentsToKeep) * noiseVariance);
                     StatisticalModelType* model = StatisticalModelType::Create(representer, mu, pcaBasis, pcaVariance, noiseVariance);
                     return model;
-
+                 }
                     break;
 
                 default:
