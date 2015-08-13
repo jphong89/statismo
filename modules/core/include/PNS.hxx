@@ -390,7 +390,7 @@ namespace statismo {
             }
             // S^1 to S^2
             if ( n_dim > 1 ) {
-                cout << "Orthoaxis:\n" << nestedsphere_orthaxis[0] << endl;
+                //cout << "Orthoaxis:\n" << nestedsphere_orthaxis[0] << endl;
                 MatrixXd aux_rotation_matrix = computeRotMat( nestedsphere_orthaxis[0] );
                 aux_rotation_matrix.transposeInPlace();
 

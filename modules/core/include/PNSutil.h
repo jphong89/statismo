@@ -6,7 +6,6 @@ using std::floor;
 using std::atan2;
 
 namespace statismo {
-    const double PI	=	3.14159265358979323846; // TODO: comment this out later when it is integrated to statismo
     typedef enum itype_t {
         SEQTEST,
         SMALL,

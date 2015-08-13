@@ -67,7 +67,7 @@ namespace statismo {
                 PNSModelBuilder();
                 PNSModelBuilder(const PNSModelBuilder& orig);
                 PNSModelBuilder& operator=(const PNSModelBuilder& rhs);
-                StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const MatrixType& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
+                StatisticalModelType* BuildNewModelInternal(const Representer<T>* representer, const Eigen::MatrixXd& X, double noiseVariance, EigenValueMethod method = JacobiSVD) const;
         };
 
 } // namespace statismo
