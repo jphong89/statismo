@@ -5,7 +5,7 @@
 
 namespace statismo {
     template <typename T> 
-        MatrixXd PNS<T>::computeRotMat( const VectorXd& vec ) {
+        MatrixXd PNS<T>::computeRotMat( const VectorXd& vec ) const {
 
             MatrixXd rotMat( vec.size(), vec.size() );
             rotMat.setIdentity();
@@ -35,24 +35,23 @@ namespace statismo {
         }
 
     template <typename T>
-        MatrixXd PNS<T>::computeRiemannianExpMap( const MatrixXd& mat ) {
+        MatrixXd PNS<T>::computeRiemannianExpMap( const MatrixXd& mat ) const {
 
             MatrixXd result( mat.rows()+1, mat.cols() );
-
             RowVectorXd normVec     = mat.colwise().norm();
             RowVectorXd normVec2    = (normVec.array() < 1e-16).select(0,normVec);
             RowVectorXd sineVec     = normVec2.array().sin();
             RowVectorXd cosVec      = normVec2.array().cos();
+            RowVectorXd denoVec     = (normVec2.array() < 1e-16).select(1, normVec);
 
             RowVectorXd auxVec      = sineVec.array() / (denoVec.array());
             MatrixXd    auxMat      = auxVec.replicate( mat.rows(), 1 );
             auxMat                  = (auxMat.array() * mat.array()).matrix();
             result << auxMat, cosVec;
-
             return result;
         }
     template <typename T>
-        MatrixXd PNS<T>::computeRiemannianLogMap( const MatrixXd& mat ) {
+        MatrixXd PNS<T>::computeRiemannianLogMap( const MatrixXd& mat ) const {
 
             MatrixXd result(mat.rows()-1, mat.cols());
 
@@ -69,10 +68,13 @@ namespace statismo {
             MatrixXd    auxM2   = (mat.topRows( mat.rows() - 1 ));
             result  = (auxM1.array() * auxM2.array()).matrix();
 
+            return result;
+        }
     template <typename T>
         double PNS<T>::computeGeodesicMeanS1( const VectorXd& angles ) {
             VectorXd meanCandidate( angles.size() );
             VectorXd auxV1( angles.size() );
+            VectorXd auxV2( angles.size() );
             VectorXd theta( angles.size() );
             MatrixXd distMatrix( angles.size(), 3 );
             VectorXd geodVariance( angles.size() );

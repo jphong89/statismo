@@ -13,8 +13,8 @@
 
 namespace statismo {
 
-template <typename T>
-class PNSModelBuilder : public ModelBuilder<T> {
+    template <typename T>
+        class PNSModelBuilder : public ModelBuilder<T> {
 
 
             public:
