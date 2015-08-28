@@ -52,10 +52,16 @@ namespace statismo {
                 MatrixXd compute(const double& alpha = 0.05, const double& R = 100); // this corresponds to PNSmain.m
 
                 // Getters for PNS data structures
+                vector< VectorXd > getOrthAxis() const { return orthaxis_; };
                 VectorXd getOrthAxis( size_t index ) const { return orthaxis_[index]; } ;
+
                 double getRadii( size_t index ) const { return radii_[index]; };
+                VectorXd getRadii() const { return radii_; };
+
                 double getDist( size_t index ) const { return dist_[index]; };
-                double getPvalue( size_t index ) const { return pvalues_[index]; };
+                VectorXd getDist() const { return dist_; };
+
+                //double getPvalue( size_t index ) const { return pvalues_[index]; };
                 MatrixXd getBasisU() const { return basisu_; };
 
                 // PNS transformation methods
