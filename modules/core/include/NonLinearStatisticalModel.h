@@ -47,6 +47,8 @@
 #include "DataManager.h"
 #include "ModelInfo.h"
 #include "Representer.h"
+#include "PNS.h"
+#include "PNSutil.h"
 
 namespace H5 {
 class Group;
@@ -116,7 +118,8 @@ class NonLinearStatisticalModel {
     typedef std::list<PointValuePairType> PointValueListType;
     typedef std::list<PointIdValuePairType> PointIdValueListType;
 
-
+    //PNS typedef
+    typedef PNS<double> PNSType;
 
 
     /**
@@ -144,11 +147,11 @@ class NonLinearStatisticalModel {
     */
     static NonLinearStatisticalModel* Create(const RepresenterType* representer,
                                     const VectorType& m,
-                                    const MatrixType& nestedPNS,
+                                    const PNSType& principalNestedSphere,
                                     const MatrixType& orthonormalPCABasis,
                                     const VectorType& pcaVariance,
                                     double noiseVariance) {
-        return new NonLinearStatisticalModel(representer, m, orthonormalPCABasis, pcaVariance, noiseVariance);
+        return new NonLinearStatisticalModel(representer, m, principalNestedSphere, orthonormalPCABasis, pcaVariance, noiseVariance);
     }
 
 
@@ -592,7 +595,7 @@ class NonLinearStatisticalModel {
      * Create an instance of the NonLinearStatisticalModel
      * @param representer An instance of the representer, used to convert the samples to dataset of the represented type.
      */
-    NonLinearStatisticalModel(const RepresenterType* representer, const VectorType& m, const MatrixType& orthonormalPCABasis, const VectorType& pcaVariance, double noiseVariance);
+    NonLinearStatisticalModel(const RepresenterType* representer, const VectorType& m, const pnsType& principalNestedSphere, const MatrixType& orthonormalPCABasis, const VectorType& pcaVariance, double noiseVariance);
 
     /** Create an empty model. This is only used for the load method, which then sets all the parameters manually */
     NonLinearStatisticalModel(const RepresenterType* representer);
@@ -608,8 +611,7 @@ class NonLinearStatisticalModel {
     VectorType m_pcaVariance;
     float m_noiseVariance;
     // needed for PNS
-    bool basis_flag_;
-    MatrixType nested_sphere_;
+    PNSType m_pns; 
 
     // caching
     mutable bool m_cachedValuesValid;

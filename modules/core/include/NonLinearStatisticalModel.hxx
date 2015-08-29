@@ -52,9 +52,10 @@
 namespace statismo {
 
 template <typename T>
-NonLinearStatisticalModel<T>::NonLinearStatisticalModel(const RepresenterType* representer, const VectorType& m, const MatrixType& orthonormalPCABasis, const VectorType& pcaVariance, double noiseVariance)
+NonLinearStatisticalModel<T>::NonLinearStatisticalModel(const RepresenterType* representer, const VectorType& m, const pnsType& principalNestedSphere, const MatrixType& orthonormalPCABasis, const VectorType& pcaVariance, double noiseVariance)
     : m_representer(representer->Clone()),
       m_mean(m),
+      m_pns(principalNestedSphere),
       m_pcaVariance(pcaVariance),
       m_noiseVariance(noiseVariance),
       m_cachedValuesValid(false),

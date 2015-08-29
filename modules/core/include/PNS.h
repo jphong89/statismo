@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 using std::vector;
-//#include "CommonTypes.h"
+#include "CommonTypes.h"
 #include <unsupported/Eigen/NonLinearOptimization>
 using Eigen::LevenbergMarquardt;
 #include <Eigen/Dense>
@@ -37,7 +37,7 @@ namespace statismo {
                 MatrixXd computeRotMat( const VectorXd& vec );
                 MatrixXd computeRiemannianExpMap( const MatrixXd& mat );
                 MatrixXd computeRiemannianLogMap( const MatrixXd& mat );
-                double modBy2PI( const double& x ) { return  ( x - (2*PI)*floor( x / (2*PI) ) ); }; // Apparently compiler internally inline this function if it can see in the header.
+                //double modBy2PI( const double& x ) { return  ( x - (2*PI)*floor( x / (2*PI) ) ); }; // Apparently compiler internally inline this function if it can see in the header.
                 double computeGeodesicMeanS1( const VectorXd& angles );
             public:
                 // NOTE: punted the job to convert data into column major matrix to the caller
